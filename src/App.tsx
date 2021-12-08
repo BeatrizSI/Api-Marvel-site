@@ -7,23 +7,22 @@ import { IComic } from './interfaces/comics';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import { FaSearch } from 'react-icons/fa';
+import { FaPlusCircle, FaSearch } from 'react-icons/fa';
 
-
-const KEY = '09101f53f5a25fd1329df876511dbf77';
-const HASH = 'b8d4f7e138e651d542c879a021a7c7ae';
 
 export default function App() {
-
+  const QUANTITY_PER_PAGE = 8;	
   const [query, setQuery] = useState<string>('');
   const [comics, setComics] = useState<IComic[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
 
   async function search(value: string) {
     setIsLoading(true)
     try {
-      const { data } = await api.get(`comics?titleStartsWith=${value}&ts=1&apikey=${KEY}&hash=${HASH}`)
+      const { data } = await api.get(`comics?titleStartsWith=${value}&ts=1&apikey=${process.env.REACT_APP_KEY}&hash=${process.env.REACT_APP_HASH}`)
       setComics(data.data.results);
+      setPage(1);
     } catch {
       alert('Erro ao realizar pesquisa, tente novamente')
     } finally {
@@ -31,7 +30,9 @@ export default function App() {
     }
   }
   return (
-    <div className="App">
+    <article>
+      <div className="App">
+      
       <Header />
       <TextField
         className = "box-search"
@@ -55,15 +56,28 @@ export default function App() {
       {
         isLoading && <div>Carregando...</div>
       }
+      
 
       <Grid container spacing={2} className = "list-comics">
         {
-          comics?.map(element =>
-            <Grid item xs={3}>
+          comics?.slice(0,page*QUANTITY_PER_PAGE).map(element =>
+            <Grid item xs={3} key={element.id}>
               <CardComic comic={element} />
             </Grid>)
         }
       </Grid>
+      {
+      comics && <Button
+      className = "mais"
+      variant="contained"
+      onClick={() => {
+        setPage(page+1 );
+      }}
+      startIcon={<FaPlusCircle />}>
+      Ver mais
+      </Button>
+      }
     </div>
+     </article>
   );
 };
